@@ -54,21 +54,21 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 <div id="header">
 <h1 class="title">Practical Machine Learning Project</h1>
 <h4 class="author"><em>Frank Feng</em></h4>
-<h4 class="date"><em>Tuesday, June 09, 2015</em></h4>
+<h4 class="date"><em>Thursday, June 18, 2015</em></h4>
 </div>
 
 
 <div id="purpose" class="section level3">
 <h3>Purpose:</h3>
-<p>The goal of this project is to build a statistic model to predict the manner (“classe” variable in the dataset) of exercise performed by a group using the measurements data collected from sensors attached to the individuals in the group.</p>
+<p>The goal of this project is to build a statistic model to predict the manner (“classe” variable in the dataset) of exercise performed by a group using the data collected from sensors attached to the individuals in the group.</p>
 </div>
 <div id="data-description" class="section level3">
 <h3>Data description</h3>
-<p>The data used in this project comes from <a href="http://groupware.les.inf.puc-rio.br/har" class="uri">http://groupware.les.inf.puc-rio.br/har</a>. It recorded the measurements of Six young health participants performing one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). The details description of data can be found in the referenced article.</p>
+<p>The data used in this project come from <a href="http://groupware.les.inf.puc-rio.br/har">http://groupware.les.inf.puc-rio.br/har</a>. It contains the measurements of six young health participants performing one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E). The details description of data can be found in the reference article.</p>
 </div>
 <div id="reading-the-data" class="section level3">
 <h3>Reading the data:</h3>
-<p>After downloading the data from source link into R studio work directory, read the data file into data frames;</p>
+<p>After downloading the data files from the source link into a R studio work directory, importing the training and testing data files into data frames;</p>
 <pre class="r"><code>pml_training&lt;-read.csv(&quot;pml-training.csv&quot;,na.strings=c(&quot;NA&quot;,&quot;&quot;))
 pml_testing&lt;-read.csv(&quot;pml-testing.csv&quot;,na.strings=c(&quot;NA&quot;,&quot;&quot;))</code></pre>
 </div>
@@ -86,14 +86,14 @@ library(caret)
 nearZeroVar(pml_training,saveMetrics=TRUE)
 #check predictor types and values
 str(pml_training)</code></pre>
-<p>We can see column X is a sequence number, new_window is not changing. While we are only interested to classify the movement category, the individual identify and time information should not play a role in out prediction, so we can remove column 1-6 from our training set.</p>
+<p>From the above results of data structure, distribution summary, and variance calculations, we can see column X is a sequence number, new_window is not changing. While we are only interested to classify the manner of exercise, the individual identify and time information should not play a role in out prediction, so we can remove columns 1-6 from our training set.</p>
 <pre class="r"><code>pml_training&lt;- pml_training[,-(1:6)]
 dim(pml_training)</code></pre>
 <pre><code>## [1] 19622    54</code></pre>
 </div>
 <div id="building-model" class="section level3">
 <h3>Building Model</h3>
-<p>We can see the training data set is rather large, we will split the data set into two halves, each contains 50% of data set, one will be used for train the model, and the other will be used for cross validation and calculation of out-of-sample error. As indicated in the referenced article, we will use random forest method to classify the different category of movement (classe), and we will use k-fold cross-validation (cv) as train control options, and in this practice k=5 to save some computer time to train the model.</p>
+<p>We can see the training data set is rather large, we will split the data set into two halves, each contains 50% of data set, one will be used for training the model, and the other will be used for cross validation and calculation of out-of-sample error. As indicated in the reference article, we will use random forest method to classify the different manner of exercise (classe), and we will use k-fold cross-validation (cv) as train control options, and we choose k=5 in order to save computer time to train the model. Here are the steps and training results:</p>
 <pre class="r"><code>set.seed(201506)
 inTrain &lt;-createDataPartition(y=pml_training$classe,p=0.5,list=FALSE)
 trainData &lt;-pml_training[inTrain,]
@@ -121,22 +121,22 @@ rfFit$finalModel</code></pre>
 ## E    0    1    0    2 1801 0.0016629712</code></pre>
 <pre class="r"><code># model fit accuracy
 acy&lt;-rfFit$results$Accuracy[2]</code></pre>
-<p>From our finalModel, we obtained estimated OOB ,or out of bag (sample) error is 0.3% and predication accuracy for the training set is 0.9954129.</p>
+<p>From the training finalModel, we obtained estimated OOB ,or out of bag (sample) error is 0.3% and predication accuracy for the training set is 0.9954129.</p>
 </div>
 <div id="cross-validation-and-out-of-sample-error" class="section level3">
 <h3>Cross-Validation and out-of-sample error</h3>
-<p>Apply the model to the other half of the training set we hold out to cross validate the model and calculate the prediction accuracy and the out-of-sample error.</p>
+<p>Applying the model to the other half of the training data set we hold out to cross validate the model, we can test our prediction accuracy and calculate the out-of-sample error.</p>
 <pre class="r"><code># predict with the other half of the training data .
 prediction_valid&lt;-predict(rfFit,newdata=validData)
 # over all accuracy
 oacy&lt;-confusionMatrix(prediction_valid,validData$classe)$overall[1]
 # the out of sample error
 osmpl_err&lt;-1-oacy</code></pre>
-<p>We found overall predication accuracy for the validation set is 0.9972477 which means we did not over fit or under fit the model, or the split-ed dataset are very similar. The out-of-sample error is 0.0027523 which is very close to the model estimated OOB error 0.3% from the k-fold cross-validation training control, which means the OOB error is as accurate as using a validation set of the same size as the training set.</p>
+<p>We found overall predication accuracy for the validation set is 0.9972477 which means we did not over fit or under fit the model, or the split-ed datasets are very similar. The out-of-sample error is 0.0027523 which is very close to the model estimated OOB error 0.3% from the k-fold cross-validation training control, which indicates the OOB error is as accurate as out-of-sample error we calculated using a validation set of the same size as the training set used to build the model.</p>
 </div>
 <div id="test-data-predication" class="section level3">
 <h3>Test data predication</h3>
-<p>Now we can apply our model to the test set and write out answers into individual files.</p>
+<p>Now we can apply our model to the testing data set and write out answers into individual files for our second part of the project.</p>
 <pre class="r"><code># remove NA columns
 pml_testing&lt;-pml_testing[,colSums(is.na(pml_testing))&lt;20]
 # remove first six columns
